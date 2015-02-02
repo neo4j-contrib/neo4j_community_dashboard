@@ -14,7 +14,7 @@ if ENV['TWITTER_CONSUMER_KEY']
   search_term = "#{search_term}"
 
   SCHEDULER.every '10s', :first_in => 0 do |job|
-    yesterday = Time.now - (60 * 60 * 24 * 7)
+    yesterday = Time.now - (60 * 60 * 24)
 
     count = ApiCache.fetch(search_term) do
       twitter.search(search_term, since: yesterday.strftime('%Y-%m-%d')).count
