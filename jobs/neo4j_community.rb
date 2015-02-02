@@ -15,11 +15,24 @@ def github_repo_count
   JSON.parse(UrlCache.get_url_body(url))['total_count']
 end
 
+def meetup_member_count
+  puts 'querying meetup'
+  url = 'https://api.meetup.com/topics.json/?name=neo4j&key=4138e1048641d365949c7e3c72a5d'
+
+  topic = JSON.parse(UrlCache.get_url_body(url))['results'].detect do |topic|
+    topic['urlkey'] == 'neo4j'
+  end
+
+  topic['members'].to_i
+end
+
 send_event('stack_overflow', current: stack_overflow_question_count)
 send_event('github', current: github_repo_count)
+send_event('meetup_members', current: meetup_member_count)
 
 SCHEDULER.every '10s' do
   send_event('stack_overflow', current: stack_overflow_question_count)
   send_event('github', current: github_repo_count)
+  send_event('meetup_members', current: meetup_member_count)
 end
 
