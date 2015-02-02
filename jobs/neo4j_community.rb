@@ -17,7 +17,7 @@ end
 
 def meetup_member_count
   puts 'querying meetup'
-  url = 'https://api.meetup.com/topics.json/?name=neo4j&key=4138e1048641d365949c7e3c72a5d'
+  url = 'https://api.meetup.com/topics.json/?name=neo4j&key=' + ENV['MEETUP_API_KEY']
 
   topic = JSON.parse(UrlCache.get_url_body(url))['results'].detect do |topic|
     topic['urlkey'] == 'neo4j'
