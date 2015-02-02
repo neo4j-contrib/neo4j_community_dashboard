@@ -2,6 +2,7 @@ require 'active_support'
 
 class UrlCache
   CACHE = if ENV['REDISCLOUD_URL']
+            require 'redis-activesupport'
             ActiveSupport::Cache::RedisStore.new(ENV['REDISCLOUD_URL'])
           else
             ActiveSupport::Cache::FileStore.new('cache')
