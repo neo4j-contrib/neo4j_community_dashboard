@@ -1,28 +1,25 @@
 require 'twitter'
+require './lib/api_cache'
 
 
-#### Get your twitter keys & secrets:
-#### https://dev.twitter.com/docs/auth/tokens-devtwittercom
-twitter = Twitter::REST::Client.new do |config|
-  config.consumer_key = 'YOUR_CONSUMER_KEY'
-  config.consumer_secret = 'YOUR_CONSUMER_SECRET'
-  config.access_token = 'YOUR_OAUTH_TOKEN'
-  config.access_token_secret = 'YOUR_OAUTH_SECRET'
-end
+if ENV['TWITTER_CONSUMER_KEY']
+  twitter = Twitter::REST::Client.new do |config|
+    config.consumer_key = ENV['TWITTER_CONSUMER_KEY']
+    config.consumer_secret = ENV['TWITTER_CONSUMER_SECRET']
+    config.access_token = ENV['TWITTER_ACCESS_TOKEN']
+    config.access_token_secret = ENV['TWITTER_TOKEN_SECRET']
+  end
 
-search_term = URI::encode('#todayilearned')
+  search_term = URI::encode('neo4j OR "graph OR database" OR "graph OR databases" OR graphdb OR graphconnect OR @neoquestions OR @Neo4jDE OR @Neo4jFr OR neotechnology')
+  search_term = "#{search_term}"
 
-SCHEDULER.every '10m', :first_in => 0 do |job|
-  begin
-    tweets = twitter.search("#{search_term}")
+  SCHEDULER.every '10s', :first_in => 0 do |job|
+    yesterday = Time.now - (60 * 60 * 24 * 7)
 
-    if tweets
-      tweets = tweets.map do |tweet|
-        { name: tweet.user.name, body: tweet.text, avatar: tweet.user.profile_image_url_https }
-      end
-      send_event('twitter_mentions', comments: tweets)
+    count = ApiCache.fetch(search_term) do
+      twitter.search(search_term, since: yesterday.strftime('%Y-%m-%d')).count
     end
-  rescue Twitter::Error
-    puts "\e[33mFor the twitter widget to work, you need to put in your twitter API keys in the jobs/twitter.rb file.\e[0m"
+
+    send_event('twitter', { current: count })
   end
 end
